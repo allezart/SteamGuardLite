@@ -1,0 +1,99 @@
+﻿<Window x:Class="SteamGuardLite.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Steam Guard Lite"
+        Width="440" Height="220"
+        WindowStartupLocation="CenterScreen"
+        AllowDrop="True"
+        Loaded="Window_Loaded"
+        DragEnter="Window_DragEnter"
+        Drop="Window_Drop">
+
+    <DockPanel LastChildFill="True">
+
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Загрузить" Click="AccountLoad_Click" />
+        </Menu>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="16"/>
+                <!-- top gutter -->
+                <RowDefinition Height="Auto"/>
+                <!-- account -->
+                <RowDefinition Height="12"/>
+                <!-- gap -->
+                <RowDefinition Height="Auto"/>
+                <!-- guard block -->
+                <RowDefinition Height="*"/>
+                <!-- filler -->
+                <RowDefinition Height="16"/>
+                <!-- bottom gutter -->
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <!-- left gutter -->
+                <ColumnDefinition Width="*"/>
+                <!-- content -->
+                <ColumnDefinition Width="16"/>
+                <!-- right gutter -->
+            </Grid.ColumnDefinitions>
+
+            <!-- Account -->
+            <TextBlock x:Name="AccountText"
+                       Grid.Row="1" Grid.Column="1"
+                       FontSize="14"
+                       Opacity="0.85"
+                       Text="Файл не загружен" />
+
+            <Grid Grid.Row="3" Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <!-- guard button -->
+                    <RowDefinition Height="6"/>
+                    <!-- gap -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- progress -->
+                    <RowDefinition Height="10"/>
+                    <!-- gap -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- hint 1 -->
+                    <RowDefinition Height="6"/>
+                    <!-- gap -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- hint 2 -->
+                </Grid.RowDefinitions>
+
+                <Button x:Name="GuardButton"
+                        Grid.Row="0"
+                        Height="64"
+                        FontSize="28"
+                        FontWeight="SemiBold"
+                        Content="-----"
+                        IsEnabled="False"
+                        ToolTip="Нажмите, чтобы скопировать код в буфер"
+                        Click="GuardButton_Click" />
+
+                <ProgressBar x:Name="GuardProgress"
+                             Grid.Row="2"
+                             Height="3"
+                             Minimum="0"
+                             Maximum="100"
+                             Value="0"
+                             IsEnabled="False"
+                             ToolTip="Загрузите maFile, чтобы видеть прогресс обновления" />
+
+                <TextBlock Grid.Row="4"
+                           Opacity="0.6"
+                           Text="Нажмите на код, чтобы скопировать в буфер обмена." />
+
+                <TextBlock Grid.Row="6"
+                           Opacity="0.6"
+                           TextWrapping="Wrap"
+                           Text="Можно перетащить maFile (.maFile/.json) прямо в окно." />
+            </Grid>
+        </Grid>
+
+    </DockPanel>
+</Window>
