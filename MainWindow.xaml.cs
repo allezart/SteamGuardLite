@@ -28,10 +28,9 @@ public partial class MainWindow : Window
         SetNotLoadedUi();
     }
 
-    // Минимальный размер “по контенту”
+    // Minimal window size based on current content
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
-        var old = SizeToContent;
         SizeToContent = SizeToContent.WidthAndHeight;
         UpdateLayout();
 
@@ -50,7 +49,7 @@ public partial class MainWindow : Window
     {
         var dlg = new OpenFileDialog
         {
-            Filter = "maFile / json|*.maFile;*.json|Все файлы|*.*"
+            Filter = "maFile / json|*.maFile;*.json|All files|*.*"
         };
 
         if (dlg.ShowDialog() == true)
@@ -63,7 +62,7 @@ public partial class MainWindow : Window
             return;
 
         Clipboard.SetText(_currentCode);
-        FlashTitle("Скопировано", 1.5);
+        FlashTitle("Copied", 1.5);
     }
 
     private void Window_DragEnter(object sender, DragEventArgs e)
@@ -94,7 +93,7 @@ public partial class MainWindow : Window
             var (ok, account, secret, error) = MafileReader.TryExtractAccountAndSecret(json);
             if (!ok)
             {
-                MessageBox.Show(error, "Ошибка maFile", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(error, "maFile error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
@@ -104,13 +103,13 @@ public partial class MainWindow : Window
             GuardButton.IsEnabled = true;
             GuardProgress.IsEnabled = true;
 
-            AccountText.Text = $"Аккаунт: {(!string.IsNullOrWhiteSpace(account) ? account : "(без account_name)")}";
+            AccountText.Text = $"Account: {(!string.IsNullOrWhiteSpace(account) ? account : "(no account_name)")}";
 
             UpdateGuardNow();
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "Ошибка чтения файла", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(ex.Message, "File read error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -119,11 +118,12 @@ public partial class MainWindow : Window
         if (Title != _baseTitle && DateTime.UtcNow > _titleUntilUtc)
             Title = _baseTitle;
 
+        // Progress bar must not run until an account is loaded
         if (string.IsNullOrWhiteSpace(_sharedSecret))
         {
             GuardProgress.Value = 0;
             GuardProgress.IsEnabled = false;
-            GuardProgress.ToolTip = "Загрузите maFile, чтобы видеть прогресс обновления";
+            GuardProgress.ToolTip = "Load a maFile to see refresh progress";
             return;
         }
 
@@ -133,6 +133,7 @@ public partial class MainWindow : Window
         long unix = now.ToUnixTimeSeconds();
         long slice = unix / 30;
 
+        // New time slice => new code. Reset progress to 0 exactly here.
         if (slice != _timeSlice)
         {
             _timeSlice = slice;
@@ -141,20 +142,17 @@ public partial class MainWindow : Window
             GuardButton.Content = _currentCode;
 
             GuardProgress.Value = 0;
-
-            int remainAtBoundary = 30;
-            GuardProgress.ToolTip = $"До обновления: {remainAtBoundary} сек";
-
-            return;
+            GuardProgress.ToolTip = "Refresh in: 30 s";
+            return; // keep 0 visible for at least one tick
         }
 
         long ms = now.ToUnixTimeMilliseconds();
-        double elapsedMs = ms % 30000.0;                // 0..29999
-        double progress = (elapsedMs / 30000.0) * 100.0; // 0..100
+        double elapsedMs = ms % 30000.0;                  // 0..29999
+        double progress = (elapsedMs / 30000.0) * 100.0;  // 0..100
         int remainSec = (int)Math.Ceiling((30000.0 - elapsedMs) / 1000.0);
 
         GuardProgress.Value = progress;
-        GuardProgress.ToolTip = $"До обновления: {remainSec} сек";
+        GuardProgress.ToolTip = $"Refresh in: {remainSec} s";
     }
 
     private void UpdateGuardNow()
@@ -172,7 +170,7 @@ public partial class MainWindow : Window
         GuardProgress.Value = (elapsedMs / 30000.0) * 100.0;
 
         int remainSec = (int)Math.Ceiling((30000.0 - elapsedMs) / 1000.0);
-        GuardProgress.ToolTip = $"До обновления: {remainSec} сек";
+        GuardProgress.ToolTip = $"Refresh in: {remainSec} s";
     }
 
     private void SetNotLoadedUi()
@@ -182,8 +180,9 @@ public partial class MainWindow : Window
 
         GuardProgress.Value = 0;
         GuardProgress.IsEnabled = false;
-        GuardProgress.ToolTip = "Загрузите maFile, чтобы видеть прогресс обновления";
+        GuardProgress.ToolTip = "Load a maFile to see refresh progress";
 
+        AccountText.Text = "No account loaded";
         Title = _baseTitle;
     }
 

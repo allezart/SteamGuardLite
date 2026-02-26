@@ -7,22 +7,18 @@ namespace SteamGuardLite;
 
 public static class MafileReader
 {
-    /// <summary>
-    /// Достаёт account_name и shared_secret из maFile JSON.
-    /// Поддерживает также "упакованный" формат: { content: "..." } или { content: { ... } }
-    /// </summary>
     public static (bool ok, string? accountName, string sharedSecret, string error)
         TryExtractAccountAndSecret(string json)
     {
         if (string.IsNullOrWhiteSpace(json))
-            return (false, null, "", "Файл пустой.");
+            return (false, null, "", "File is empty.");
 
         try
         {
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
-            // Упакованный формат: content
+            // Some maFiles may be wrapped like: { "content": "..." } or { "content": { ... } }
             if (TryGetPropertyCI(root, "content", out var content))
             {
                 if (content.ValueKind == JsonValueKind.String)
@@ -44,24 +40,23 @@ public static class MafileReader
         }
         catch (JsonException ex)
         {
-            return (false, null, "", $"Некорректный JSON: {ex.Message}");
+            return (false, null, "", $"Invalid JSON: {ex.Message}");
         }
 
         static (bool ok, string? accountName, string sharedSecret, string error) Extract(JsonElement root)
         {
             if (root.ValueKind != JsonValueKind.Object)
-                return (false, null, "", "Ожидался JSON-объект.");
+                return (false, null, "", "Expected a JSON object.");
 
             var secret = GetStringCI(root, "shared_secret", "SharedSecret", "sharedSecret");
             if (string.IsNullOrWhiteSpace(secret))
-                return (false, null, "", "Не найдено поле shared_secret.");
+                return (false, null, "", "Field 'shared_secret' was not found.");
 
             secret = secret.Trim();
             if (!IsBase64(secret))
-                return (false, null, "", "shared_secret не похож на base64.");
+                return (false, null, "", "'shared_secret' does not look like base64.");
 
             var acc = GetStringCI(root, "account_name", "AccountName", "accountName")?.Trim();
-
             return (true, acc, secret, "");
         }
 
@@ -109,13 +104,13 @@ public static class MafileReader
 
 public static class SteamGuardCodeGenerator
 {
-    // Алфавит Steam Guard
+    // Steam Guard alphabet
     private const string SteamChars = "23456789BCDFGHJKMNPQRTVWXY";
 
-    /// <summary>5-символьный Steam Guard код по shared_secret (base64) и unixTimeSeconds.</summary>
+    /// <summary>Generates a 5-char Steam Guard code using shared_secret (base64) and unixTimeSeconds.</summary>
     public static string GenerateCode(string sharedSecretBase64, long unixTimeSeconds)
     {
-        // шаг 30 секунд
+        // 30-second step
         long timeSlice = unixTimeSeconds / 30;
 
         byte[] timeBytes = BitConverter.GetBytes(timeSlice);
@@ -144,7 +139,7 @@ public static class SteamGuardCodeGenerator
         return sb.ToString();
     }
 
-    /// <summary>Секунд до смены кода (1..30).</summary>
+    /// <summary>Seconds remaining until the next code (1..30).</summary>
     public static int SecondsRemaining(long unixTimeSeconds)
     {
         int sec = (int)(unixTimeSeconds % 30); // 0..29
