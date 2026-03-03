@@ -1,6 +1,6 @@
 # SteamGuardLite
 
-Lightweight WPF utility that displays Steam Guard codes from a Steam `.maFile`.
+C# WPF utility that displays Steam Guard codes from a Steam `.maFile`.
 
 ## Features
 - Load `.maFile` via menu
@@ -15,7 +15,7 @@ Lightweight WPF utility that displays Steam Guard codes from a Steam `.maFile`.
 2. Click the code button to copy the current code.
 
 ## Download
-Go to **Releases** and download the latest `SteamGuardLite-*-win-x64.zip`.
+Go to **Releases** and download the latest `SteamGuardLite.exe`
 
 ## License
 MIT
